@@ -1,9 +1,9 @@
-from textnode import TextNode
+from textnode import TextNode, TextType
 
 
 def main():
     test_text_node = TextNode(
-        "this is some random text", "links", "https://www.boot.dev"
+        "this is some random text", TextType.BOLD, "https://www.boot.dev"
     )
     print(test_text_node)
 
