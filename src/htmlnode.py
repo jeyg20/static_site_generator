@@ -14,12 +14,15 @@ class HTMLNode:
     def to_html(self):
         raise NotImplementedError
 
-    def props_to_html(self) -> str:
-        """Render the node's props as an HTML string."""
+    def props_to_html(self) -> str | None:
         if not self.props:
             return ""
-        props_list = [f'{key}="{value}"' for key, value in self.props.items()]
-        return " " + " ".join(props_list)
+        props_parts = []
+        for key, value in self.props.items():
+            escaped_value = value.replace('"', "&quot;")
+            props_parts.append(f'{key}="{escaped_value}"')
+
+        return " " + " ".join(props_parts)
 
     def __repr__(self) -> str:
         return (
@@ -35,15 +38,17 @@ class HTMLNode:
 class LeafNode(HTMLNode):
     def __init__(
         self,
-        value: str,
         tag: str | None = None,
+        value: str | None = None,
         props: dict[str, str] | None = None,
-        children: None = None,
     ):
-        if children is not None:
-            raise ValueError("LeafNode cannot have children")
 
-        super().__init__(tag, value, children=None, props=props)
+        if tag is None or tag == "":
+            raise ValueError("LeafNode requires a tag")
+        if not value or not isinstance(value, dict):
+            raise ValueError("LeafNode requires a value")
+
+        super().__init__(tag=tag, value=value, children=None, props=props)
 
     def to_html(self):
         if self.value is None:
@@ -51,15 +56,40 @@ class LeafNode(HTMLNode):
 
         if self.tag is None:
             return str(self.value)
+
         else:
             props_string = self.props_to_html()
             return f"<{self.tag}{props_string}>{self.value}</{self.tag}>"
 
-    def __repr__(self) -> str:
-        return (
-            f"LeafNode("
-            f"tag={self.tag}, "
-            f"value={self.value}, "
-            f"props={self.props}"
-            f")"
-        )
+
+class ParentNode(HTMLNode):
+    def __init__(
+        self,
+        tag: str,
+        children: list["HTMLNode"],
+        props: dict[str, str] | None = None,
+    ):
+        if tag is None or tag == "":
+            raise ValueError("ParentNode requires a tag")
+        if not children or not isinstance(children, list):
+            raise ValueError("ParentNode requires a list of children")
+
+        super().__init__(tag=tag, value=None, children=children, props=None)
+
+    def to_html(self):
+        if not self.tag:
+            raise ValueError("ParentNode requires a tag to render HTML")
+
+        if not self.children:
+            raise ValueError("ParentNode requires a children to render HTML")
+
+        props_string = self.props_to_html()
+        opening_tag = f"<{self.tag}{props_string}>"
+
+        children_string = ""
+        for child in self.children:
+            children_string += child.to_html()
+
+        closing_tag = f"</{self.tag}>"
+
+        return f"{opening_tag}{children_string}{closing_tag}"
