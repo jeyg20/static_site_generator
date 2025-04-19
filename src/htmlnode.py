@@ -43,16 +43,13 @@ class LeafNode(HTMLNode):
         props: dict[str, str] | None = None,
     ):
 
-        if not value:
-            raise ValueError("LeafNode requires a value")
-
         super().__init__(tag=tag, value=value, children=None, props=props)
 
     def to_html(self):
-        if self.value is None:
+        if not self.value:
             raise ValueError("LeafNode requires a value to render HTML")
 
-        if self.tag is None:
+        if not self.tag:
             return str(self.value)
 
         else:
@@ -67,10 +64,6 @@ class ParentNode(HTMLNode):
         children: list["HTMLNode"],
         props: dict[str, str] | None = None,
     ):
-        if tag is None or tag == "":
-            raise ValueError("ParentNode requires a tag")
-        if not children or not isinstance(children, list):
-            raise ValueError("ParentNode requires a list of children")
 
         super().__init__(tag=tag, value=None, children=children, props=None)
 
@@ -78,7 +71,7 @@ class ParentNode(HTMLNode):
         if not self.tag:
             raise ValueError("ParentNode requires a tag to render HTML")
 
-        if not self.children:
+        if not self.children or not isinstance(self.children, list):
             raise ValueError("ParentNode requires a children to render HTML")
 
         props_string = self.props_to_html()
