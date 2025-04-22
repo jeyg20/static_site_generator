@@ -11,9 +11,17 @@ class TextType(Enum):
     LINK = "link"
     IMAGE = "image"
 
+    # Added for clarity in error messages
+    @classmethod
+    def values(cls):
+        return [member.value for member in cls]
+
 
 class TextNode:
-    def __init__(self, text: str, text_type: TextType, url: str | None = None):
+    def __init__(self, text: str, text_type: TextType, url: str = ""):
+
+        if not isinstance(text_type, TextType):
+            raise TypeError(f"text_type must be a member of the TextType Enum, not {type(text_type)}")
         self.text = text
         self.text_type = text_type
         self.url = url
@@ -21,11 +29,7 @@ class TextNode:
     def __eq__(self, other) -> bool:
         if not isinstance(other, TextNode):
             return NotImplemented
-        return (
-            self.text == other.text
-            and self.text_type == other.text_type
-            and self.url == other.url
-        )
+        return self.text == other.text and self.text_type == other.text_type and self.url == other.url
 
     def __repr__(self) -> str:
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
@@ -61,3 +65,38 @@ def text_node_to_html_node(text_node):
                 value="",
                 props={"src": text_node.url, "alt": text_node.text},
             )
+        case _:
+            valid_string_values = [member.value for member in TextType]
+            raise ValueError(
+                f"Invalid text type string: '{text_node.text_value}' Must be one of: {', '.join(valid_string_values)}"
+            )
+
+
+def split_nodes_delimiter(text_nodes_to_split: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
+
+    valid_pairs = {
+        ("`", TextType.CODE),
+        ("**", TextType.BOLD),
+        ("_", TextType.ITALIC),
+    }
+
+    if (delimiter, text_type) not in valid_pairs:
+        raise ValueError(f"Invalid markdown syntax: Delimiter '{delimiter}' is not valid for text type'{text_type}'")
+
+    split_nodes = []
+
+    for node in text_nodes_to_split:
+        if node.text_type is not TextType.TEXT:
+            split_nodes.append(node)
+        else:
+            split_text = node.text.split(delimiter)
+            if len(split_text) % 2 != 1:
+                raise ValueError(f"Invalid markdown syntax: Delimeter '{delimiter}' was never closed")
+            for index, item in enumerate(split_text):
+                if item != "":
+                    if index % 2 == 0:
+                        split_nodes.append(TextNode(item, TextType.TEXT))
+                    else:
+                        split_nodes.append(TextNode(item, text_type))
+
+    return split_nodes
