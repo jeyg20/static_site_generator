@@ -73,6 +73,23 @@ def text_node_to_html_node(text_node):
 
 
 def split_nodes_delimiter(text_nodes_to_split: list[TextNode], delimiter: str, text_type: TextType) -> list[TextNode]:
+    """
+    Splits a list of TextNodes based on a given delimiter and creates new nodes
+    with the specified text type for the content within the delimiters.
+
+    Args:
+        text_nodes_to_split: The list of TextNodes to split.
+        delimiter: The markdown delimiter (e.g., '`', '**', '_').
+        text_type: The TextType to apply to the content within the delimiters
+                   (e.g., TextType.CODE, TextType.BOLD, TextType.ITALIC).
+
+    Returns:
+        A new list of TextNodes with content split by the delimiter.
+
+    Raises:
+        ValueError: If the delimiter is invalid for the text type, or if a
+                    delimiter is not properly closed.
+    """
 
     valid_pairs = {
         ("`", TextType.CODE),
@@ -81,22 +98,24 @@ def split_nodes_delimiter(text_nodes_to_split: list[TextNode], delimiter: str, t
     }
 
     if (delimiter, text_type) not in valid_pairs:
-        raise ValueError(f"Invalid markdown syntax: Delimiter '{delimiter}' is not valid for text type'{text_type}'")
+        raise ValueError(f"Invalid markdown syntax: Delimiter '{delimiter}' is not valid for text type '{text_type}'")
 
     split_nodes = []
 
     for node in text_nodes_to_split:
         if node.text_type is not TextType.TEXT:
             split_nodes.append(node)
-        else:
-            split_text = node.text.split(delimiter)
-            if len(split_text) % 2 != 1:
-                raise ValueError(f"Invalid markdown syntax: Delimeter '{delimiter}' was never closed")
-            for index, item in enumerate(split_text):
-                if item != "":
-                    if index % 2 == 0:
-                        split_nodes.append(TextNode(item, TextType.TEXT))
-                    else:
-                        split_nodes.append(TextNode(item, text_type))
+            continue
+
+        segments = node.text.split(delimiter)
+        if len(segments) % 2 != 1:
+            raise ValueError(f"Invalid markdown syntax: Delimiter '{delimiter}' was never closed in text: {node.text}")
+        for index, item in enumerate(segments):
+            if item == "":
+                continue
+            if index % 2 == 0:
+                split_nodes.append(TextNode(item, TextType.TEXT))
+            else:
+                split_nodes.append(TextNode(item, text_type))
 
     return split_nodes

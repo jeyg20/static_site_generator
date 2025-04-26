@@ -121,7 +121,7 @@ class TestTextNode(unittest.TestCase):
 
     def test_mixed_delimiters_in_input(self):
         nodes = [
-            TextNode(" text with `code` and **bold**", TextType.TEXT),
+            TextNode("text with `code` and **bold**", TextType.TEXT),
         ]
         # When splitting by '`', the '**bold**' part remains in a TEXT node
         new_nodes_code = split_nodes_delimiter(nodes, "`", TextType.CODE)
