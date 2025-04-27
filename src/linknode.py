@@ -66,31 +66,8 @@ def split_nodes_with_pattern(old_nodes: list[TextNode], node_type: TextType, ext
 
 
 def split_nodes_image(old_nodes: list[TextNode]) -> list[TextNode]:
-    image_pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
     return split_nodes_with_pattern(old_nodes, TextType.IMAGE, extract_markdown_images)
 
 
 def split_nodes_link(old_nodes: list[TextNode]) -> list[TextNode]:
-    link_pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
     return split_nodes_with_pattern(old_nodes, TextType.LINK, extract_markdown_links)
-
-
-node = TextNode(
-    "This is text with a link [to boot dev](https://www.boot.dev) and "
-    "[to youtube](https://www.youtube.com/@bootdotdev)",
-    TextType.TEXT,
-)
-new_nodes = split_nodes_link([node])
-
-for node in new_nodes:
-    print(node)
-
-node_with_image = TextNode(
-    "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another "
-    "![second image](https://i.imgur.com/3elNhQu.png)",
-    TextType.TEXT,
-)
-new_nodes_image = split_nodes_image([node_with_image])
-
-for node in new_nodes_image:
-    print(node)
