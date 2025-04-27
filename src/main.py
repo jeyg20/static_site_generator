@@ -1,11 +1,9 @@
-from htmlnode import LeafNode, ParentNode
-from textnode import TextNode, TextType
+from src.htmlnode import LeafNode, ParentNode
+from src.textnode import TextNode, TextType
 
 
 def main():
-    test_node = TextNode(
-        "this is some random text", TextType.BOLD, "https://www.boot.dev"
-    )
+    test_node = TextNode("this is some random text", TextType.BOLD, "https://www.boot.dev")
     print(test_node)
 
     node = ParentNode(

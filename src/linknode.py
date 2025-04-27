@@ -1,6 +1,6 @@
 import re
 
-from textnode import TextNode, TextType
+from src.textnode import TextNode, TextType
 
 
 def extract_markdown_images(text: str) -> list[tuple]:

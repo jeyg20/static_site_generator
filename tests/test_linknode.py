@@ -1,7 +1,7 @@
 import unittest
 
-from linknode import extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
-from textnode import TextNode, TextType
+from src.linknode import extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from src.textnode import TextNode, TextType
 
 
 class TestLinkNode(unittest.TestCase):

@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
 
 
 class TestHTMLNode(unittest.TestCase):
@@ -25,9 +25,7 @@ class TestHTMLNode(unittest.TestCase):
         with self.assertRaises(TypeError) as cm:
             LeafNode(value="Parent", children=[child])
 
-        expected_message = (
-            "LeafNode.__init__() got an unexpected keyword argument 'children'"
-        )
+        expected_message = "LeafNode.__init__() got an unexpected keyword argument 'children'"
         self.assertEqual(str(cm.exception), expected_message)
 
     def test_to_html_with_children(self):
