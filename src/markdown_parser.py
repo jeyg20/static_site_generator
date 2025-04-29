@@ -1,5 +1,16 @@
+from enum import Enum
+
 from src.linknode import split_nodes_image, split_nodes_link
 from src.textnode import TextNode, TextType, split_nodes_delimiter
+
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
 
 
 def text_to_textnodes(text: str) -> list[TextNode]:
@@ -42,3 +53,20 @@ def markdown_to_blocks(markdown: str) -> list[str]:
         return []
     markdown_blocks = [word.strip() for word in markdown.split("\n\n") if word.strip()]
     return markdown_blocks
+
+
+def block_to_block_type(markdown_block: str) -> BlockType:
+    """Identifies the type of markdown block."""
+    title_types = ("#", "##", "###", "####", "#####", "######")
+    if markdown_block.startswith(title_types):
+        return BlockType.HEADING
+    elif markdown_block.startswith("```") and markdown_block.endswith("```"):
+        return BlockType.CODE
+    elif markdown_block.startswith(">"):
+        return BlockType.QUOTE
+    elif markdown_block.startswith("- ") or markdown_block.startswith("* "):
+        return BlockType.UNORDERED_LIST
+    if markdown_block.startswith("1. "):
+        return BlockType.ORDERED_LIST
+    else:
+        return BlockType.PARAGRAPH
