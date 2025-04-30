@@ -32,14 +32,13 @@ def split_nodes_with_pattern(old_nodes: list[TextNode], node_type: TextType, ext
             new_nodes.append(old_node)
             continue
 
-        text = old_node.text
-        matches = extract_func(text)
+        current_text = old_node.text
+        matches = extract_func(current_text)
 
         if not matches:
             new_nodes.append(old_node)
             continue
 
-        current_text = text
         for match in matches:
             original_match_string = ""
             if node_type == TextType.IMAGE:
