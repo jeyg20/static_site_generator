@@ -1,5 +1,7 @@
+import textwrap
 from enum import Enum
 
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.linknode import split_nodes_image, split_nodes_link
 from src.textnode import TextNode, TextType, split_nodes_delimiter
 
@@ -55,18 +57,116 @@ def markdown_to_blocks(markdown: str) -> list[str]:
     return markdown_blocks
 
 
+def is_heading(markdown_block: str) -> bool:
+    title_types = ("# ", "## ", "### ", "#### ", "##### ", "###### ")
+
+    if len(markdown_block) < 1:
+        return False
+
+    return any(markdown_block.startswith(prefix) for prefix in title_types)
+
+
+def is_code_block(markdown_block: str) -> bool:
+    return markdown_block.startswith("```") and markdown_block.endswith("```")
+
+
+def is_quote_block(markdown_lines: list[str]) -> bool:
+    for line in markdown_lines:
+        if line and not line.startswith("> "):
+            return False
+    return True
+
+
+def is_unordered_list(markdown_lines: list[str]) -> bool:
+    if all(len(line) > 1 and line.startswith("- ") for line in markdown_lines):
+        return True
+    return False
+
+
+def is_ordered_list(markdown_lines: list[str]) -> bool:
+    non_empty_lines_with_indices = [(i, line) for i, line in enumerate(markdown_lines) if line]
+
+    if not non_empty_lines_with_indices:
+        return False
+
+    return all(line.startswith(f"{i + 1}. ") for i, line in non_empty_lines_with_indices)
+
+
 def block_to_block_type(markdown_block: str) -> BlockType:
-    """Identifies the type of markdown block."""
-    title_types = ("#", "##", "###", "####", "#####", "######")
-    if markdown_block.startswith(title_types):
+    markdown_lines = markdown_block.split("\n")
+    if is_heading(markdown_block):
         return BlockType.HEADING
-    elif markdown_block.startswith("```") and markdown_block.endswith("```"):
+
+    if is_code_block(markdown_block):
         return BlockType.CODE
-    elif markdown_block.startswith(">"):
+
+    if is_quote_block(markdown_lines):
         return BlockType.QUOTE
-    elif markdown_block.startswith("- ") or markdown_block.startswith("* "):
+
+    if is_unordered_list(markdown_lines):
         return BlockType.UNORDERED_LIST
-    if markdown_block.startswith("1. "):
+
+    if is_ordered_list(markdown_lines):
         return BlockType.ORDERED_LIST
-    else:
-        return BlockType.PARAGRAPH
+
+    return BlockType.PARAGRAPH
+
+
+def markdown_to_html_node(markdown: str):
+    split_md_blocks = markdown_to_blocks(markdown)
+    parent_node = ParentNode(tag="div", children=[])
+
+    for block in split_md_blocks:
+        block_type = block_to_block_type(block)
+        new_child = LeafNode()
+        new_parent = ParentNode(children=[])
+
+        match block_type:
+            case BlockType.HEADING:
+                heading_type = block.count("#")
+                if 1 <= heading_type <= 6:
+                    new_child.tag = f"h{heading_type}"
+                    new_child.value = block[heading_type:].strip()
+            case BlockType.CODE:
+                new_child.tag = "code"
+                new_child.value = block.strip("```").strip("\n")
+
+                new_parent.tag = "pre"
+                new_parent.children = [new_child]
+
+            case BlockType.QUOTE:
+                new_child.tag = "blockquote"
+                new_child.value = "\n".join([line.strip(">").strip() for line in block.split("\n")])
+                parent_node.children.append(new_child)
+    return parent_node
+
+
+def text_to_children(text: str) -> list[HTMLNode]:
+    pass
+
+
+if __name__ == "__main__":
+    md = textwrap.dedent(
+        """
+        # Correct title
+
+        ```
+        def foo():
+            return False
+        ```
+
+        > Wisdom flows
+        > like honey
+        > from old trees
+
+        - List
+        - New item
+        - Another item
+
+        1. Wrong start
+        2. Skipped again
+        3. Fumbled numbers
+        """
+    )
+    for b in markdown_to_blocks(md):
+        print(block_to_block_type(b), b.__repr__())

@@ -187,12 +187,11 @@ class TestTextToTextNodes(unittest.TestCase):
 
     def test_unordered_list(self):
         self.assertEqual(block_to_block_type("- List item"), BlockType.UNORDERED_LIST)
-        self.assertEqual(block_to_block_type("* Another list item"), BlockType.UNORDERED_LIST)
         self.assertEqual(block_to_block_type("- Item 1\n- Item 2"), BlockType.UNORDERED_LIST)
 
     def test_ordered_list(self):
         self.assertEqual(block_to_block_type("1. First\n2. Second\n3. Third"), BlockType.ORDERED_LIST)
-        self.assertEqual(block_to_block_type("1. Some preceding text"), BlockType.PARAGRAPH)
+        self.assertEqual(block_to_block_type("1. Some preceding text"), BlockType.ORDERED_LIST)
 
     def test_mixed_blocks(self):
         self.assertEqual(
@@ -213,10 +212,10 @@ class TestTextToTextNodes(unittest.TestCase):
             BlockType.PARAGRAPH,
         )
         self.assertEqual(
-            block_to_block_type("- Unordered list line\nThis block also has paragraph text."), BlockType.UNORDERED_LIST
+            block_to_block_type("- Unordered list line\nThis block also has paragraph text."), BlockType.PARAGRAPH
         )
         self.assertEqual(
-            block_to_block_type("1. Ordered list line\nThis block also has paragraph text."), BlockType.ORDERED_LIST
+            block_to_block_type("1. Ordered list line\nThis block also has paragraph text."), BlockType.PARAGRAPH
         )
 
 
