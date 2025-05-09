@@ -113,13 +113,22 @@ class LeafNode(HTMLNode):
         Raises:
             ValueError: If the LeafNode is initialized without a value.
         """
-        if not self.value:
-            raise ValueError("LeafNode requires a value to render HTML")
-
         if not self.tag:
+            if not self.value:
+                raise ValueError("Raw text LeafNode requires a value")
             return str(self.value)
 
+        # Self-closing tags like "img" don't need a value or closing tag
+        self_closing_tags = ["img"]
         props_string = self.props_to_html()
+
+        if self.tag in self_closing_tags:
+            return f"<{self.tag}{props_string}>"
+
+        # Regular tags need a value and closing tag
+        if not self.value:
+            raise ValueError(f"LeafNode with tag '{self.tag}' requires a value")
+
         return f"<{self.tag}{props_string}>{self.value}</{self.tag}>"
 
 

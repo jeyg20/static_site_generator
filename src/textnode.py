@@ -35,7 +35,7 @@ class TextNode:
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
 
 
-def text_node_to_html_node(text_node) -> LeafNode:
+def text_node_to_html_node(text_node: TextType) -> LeafNode:
     if not isinstance(text_node.text_type, TextType):
         raise TypeError("text_type must be a member of the TextType Enum")
 

@@ -19,6 +19,7 @@ class TestHTMLNode(unittest.TestCase):
         node = LeafNode(tag="p", value="Hello, world!")
         self.assertEqual(node.to_html(), "<p>Hello, world!</p>")
 
+    # pylint: disable=unexpected-keyword-arg
     def test_leaf_node_cannot_have_children(self):
         child = HTMLNode(tag="span", value="I'm a child")
 
@@ -41,6 +42,17 @@ class TestHTMLNode(unittest.TestCase):
             parent_node.to_html(),
             "<div><span><b>grandchild</b></span></div>",
         )
+
+    def test_to_html_h(self):
+        child_node = [
+            LeafNode("b", "Bold text"),
+            LeafNode(None, "Normal text"),
+            LeafNode("i", "italic text"),
+            LeafNode(None, "Normal text"),
+        ]
+        parent_node = ParentNode("h1", child_node)
+        expected_output = "<h1><b>Bold text</b>Normal text<i>italic text</i>Normal text</h1>"
+        self.assertEqual(parent_node.to_html(), expected_output)
 
 
 if __name__ == "__main__":
