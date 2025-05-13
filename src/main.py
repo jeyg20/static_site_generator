@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import sys
 
 from src.markdown_parser import BlockType, block_to_block_type, format_heading, markdown_to_html_node
 
@@ -37,7 +38,7 @@ def extract_title(first_line: str) -> str:
     raise Exception("The file does not contain a title heading (first line must be # ...)")
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath) -> None:
     """
     Generates a static HTML page from a markdown file using an HTML template.
 
@@ -88,13 +89,18 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
 
     html_content = markdown_to_html_node(md_content).to_html()
 
-    populated_html = template_content.replace("{{ Title }}", file_title).replace("{{ Content }}", html_content)
+    populated_html = (
+        template_content.replace("{{ Title }}", file_title)
+        .replace("{{ Content }}", html_content)
+        .replace('href="/', 'href="{basepath}')
+        .replace('src"/', 'src="{basepath}')
+    )
 
     with open(dest_path, "w", encoding="utf-8") as dest_file:
         dest_file.write(populated_html)
 
 
-def process_content_directory(content_dir: str, template_path: str, output_dir: str):
+def process_content_directory(content_dir: str, template_path: str, output_dir: str, basepath):
     """
     Processes markdown files in a content directory and generates
     corresponding HTML pages in an output directory, mirroring the structure.
@@ -131,7 +137,7 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
                 output_file_path = os.path.join(output_dir, output_file_basename)
 
                 try:
-                    generate_page(source_file_path, template_path, output_file_path)
+                    generate_page(source_file_path, template_path, output_file_path, basepath)
                 except Exception as e:
                     logger.exception("Error generating page from %s: %s", source_file_path, e)
 
@@ -139,11 +145,12 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+    basepath = sys.argv
     script_dir = os.path.dirname(os.path.abspath(__file__))
     content_base_dir = os.path.normpath(os.path.join(script_dir, "..", "content"))
     template_path = os.path.normpath(os.path.join(script_dir, "..", "content", "template.html"))
     static_base_dir = os.path.normpath(os.path.join(script_dir, "..", "static"))
-    public_base_dir = os.path.normpath(os.path.join(script_dir, "..", "public"))
+    public_base_dir = os.path.normpath(os.path.join(script_dir, "..", "docs"))
 
     # Clean the public directory before copying
     if os.path.exists(public_base_dir):
@@ -165,7 +172,7 @@ def main():
 
     # Call process_content_directory to generate pages in public
     try:
-        process_content_directory(content_base_dir, template_path, public_base_dir)
+        process_content_directory(content_base_dir, template_path, public_base_dir, basepath)
         logger.info("Content processing and page generation complete.")
     except FileNotFoundError:
         logger.error("Error: Content directory %s not found. Skipping page generation.", content_base_dir)
