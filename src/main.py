@@ -89,12 +89,13 @@ def generate_page(from_path: str, template_path: str, dest_path: str, basepath) 
 
     html_content = markdown_to_html_node(md_content).to_html()
 
-    populated_html = (
-        template_content.replace("{{ Title }}", file_title)
-        .replace("{{ Content }}", html_content)
-        .replace('href="/', 'href="{basepath}')
-        .replace('src"/', 'src="{basepath}')
-    )
+    populated_html = template_content.replace("{{ Title }}", file_title).replace("{{ Content }}", html_content)
+
+    # **Perform the specified string replacements for base path**
+    # This is the simplified and potentially brittle part as per the instructions.
+    # Using an f-string to correctly insert the base_path variable value.
+    populated_html = populated_html.replace('href="/', f'href="{basepath}')
+    populated_html = populated_html.replace('src="/', f'src="{basepath}')
 
     with open(dest_path, "w", encoding="utf-8") as dest_file:
         dest_file.write(populated_html)
@@ -145,12 +146,22 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
 def main():
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    basepath = sys.argv
     script_dir = os.path.dirname(os.path.abspath(__file__))
     content_base_dir = os.path.normpath(os.path.join(script_dir, "..", "content"))
     template_path = os.path.normpath(os.path.join(script_dir, "..", "content", "template.html"))
     static_base_dir = os.path.normpath(os.path.join(script_dir, "..", "static"))
     public_base_dir = os.path.normpath(os.path.join(script_dir, "..", "docs"))
+
+    basepath = "/"
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+        # Ensure the base path starts and ends with a slash for consistency
+        if not basepath.startswith("/"):
+            basepath = "/" + basepath
+        if not basepath.endswith("/"):
+            basepath += "/"
+
+    logger.info(f"Using base path for generation: '{basepath}'")
 
     # Clean the public directory before copying
     if os.path.exists(public_base_dir):
