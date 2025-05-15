@@ -73,13 +73,13 @@ def is_code_block(markdown_block: str) -> bool:
 
 def is_quote_block(markdown_lines: list[str]) -> bool:
     for line in markdown_lines:
-        if line and not line.startswith("> "):
+        if line and not line.startswith(">"):
             return False
     return True
 
 
 def is_unordered_list(markdown_lines: list[str]) -> bool:
-    if all(len(line) > 1 and line.startswith("- ") for line in markdown_lines):
+    if all(len(line) > 1 and line.startswith("-") for line in markdown_lines):
         return True
     return False
 
@@ -135,7 +135,7 @@ def format_code(code_block: str) -> ParentNode:
 
 
 def format_quote(quote_block: str) -> ParentNode:
-    quote_text = "\n".join(list(map(lambda line: line.lstrip("> "), quote_block.split("\n"))))
+    quote_text = " ".join(list(map(lambda line: line.lstrip("> "), quote_block.split("\n"))))
     return ParentNode("blockquote", text_to_children(quote_text))
 
 
@@ -251,11 +251,11 @@ if __name__ == "__main__":
     test_md = textwrap.dedent(
         """
         > This is a single-line quote.
-
+        >
         > This is a
         > multi-line quote.
         """
     )
 
-    node = markdown_to_html_node(md)
+    node = markdown_to_html_node(test_md)
     print(node.to_html())
