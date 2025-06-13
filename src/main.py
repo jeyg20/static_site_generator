@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 
+from src.header import generate_nav_bar
 from src.markdown_parser import BlockType, block_to_block_type, format_heading, markdown_to_html_node
 
 logger = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ def extract_title(first_line: str) -> str:
     raise Exception("The file does not contain a title heading (first line must be # ...)")
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str, basepath) -> None:
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath, content_directories: list[str]) -> None:
     """
     Generates a static HTML page from a markdown file using an HTML template.
 
@@ -87,9 +88,14 @@ def generate_page(from_path: str, template_path: str, dest_path: str, basepath) 
         )
         file_title = "Untitled Page"
 
+    nav_html = generate_nav_bar(content_directories).to_html()
     html_content = markdown_to_html_node(md_content).to_html()
 
-    populated_html = template_content.replace("{{ Title }}", file_title).replace("{{ Content }}", html_content)
+    populated_html = (
+        template_content.replace("{{ Title }}", file_title)
+        .replace("{{ nav }}", nav_html)
+        .replace("{{ Content }}", html_content)
+    )
 
     # **Perform the specified string replacements for base path**
     # This is the simplified and potentially brittle part as per the instructions.
@@ -118,6 +124,8 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
 
     logger.info("Processing content from %s and generating pages in %s...", content_dir, output_dir)
 
+    content_directories = [name for name in os.listdir(content_dir) if os.path.isdir(os.path.join(content_dir, name))]
+
     for root, _, files in os.walk(content_dir):
         relative_dir_path_from_content = os.path.relpath(root, content_dir)
         current_output_dir = os.path.join(output_dir, relative_dir_path_from_content)
@@ -138,7 +146,7 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
                 output_file_path = os.path.join(output_dir, output_file_basename)
 
                 try:
-                    generate_page(source_file_path, template_path, output_file_path, basepath)
+                    generate_page(source_file_path, template_path, output_file_path, basepath, content_directories)
                 except Exception as e:
                     logger.exception("Error generating page from %s: %s", source_file_path, e)
 
