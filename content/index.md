@@ -1,4 +1,4 @@
-# Tolkien Fan Club
+# Test site
 
 ![JRR Tolkien sitting](/images/tolkien.png)
 
