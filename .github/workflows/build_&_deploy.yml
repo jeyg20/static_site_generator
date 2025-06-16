@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-# Grant GITHUB_TOKEN write permissions to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
@@ -28,19 +27,17 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-
-    - name: Install Python Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then
-          pip install -r requirements.txt
-        fi
 
     - name: Make Scripts Executable
       run: |
-        chmod +x ./test.sh || true # Use || true if test.sh is optional/might not exist
+        chmod +x ./test.sh
         chmod +x ./build.sh
+
+          - name: Install Python Test Dependencies (pytest)
+      if: success()
+      run: |
+        echo "Installing pytest..."
+        pip install pytest
 
     - name: Run Tests
       run: ./test.sh
