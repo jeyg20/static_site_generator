@@ -15,7 +15,8 @@ jobs:
   build:
     runs-on: self-hosted
     strategy:
-      python-version: ["3.12.8"]
+      matrix:
+        python-version: ["3.12.8"]
 
     steps:
     - name: Checkout Repository
