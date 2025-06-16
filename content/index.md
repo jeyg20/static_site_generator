@@ -1,4 +1,4 @@
-# Test site
+# Test site 2
 
 ![JRR Tolkien sitting](/images/tolkien.png)
 
