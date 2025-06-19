@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import shutil
@@ -39,7 +40,9 @@ def extract_title(first_line: str) -> str:
     raise Exception("The file does not contain a title heading (first line must be # ...)")
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str, basepath, content_directories: list[str]) -> None:
+def generate_page(
+    from_path: str, template_path: str, dest_path: str, basepath, content_directories: list[str], generate_navbar: bool
+) -> None:
     """
     Generates a static HTML page from a markdown file using an HTML template.
 
@@ -88,18 +91,21 @@ def generate_page(from_path: str, template_path: str, dest_path: str, basepath, 
         )
         file_title = "Untitled Page"
 
-    nav_html = generate_nav_bar(content_directories).to_html()
+    nav_html = ""
+    if generate_navbar:
+        nav_html = generate_nav_bar(content_directories).to_html()
+
     html_content = markdown_to_html_node(md_content).to_html()
+    footer_content = ""
 
     populated_html = (
         template_content.replace("{{ Title }}", file_title)
         .replace("{{ nav }}", nav_html)
         .replace("{{ Content }}", html_content)
+        .replace("{{ Footer }}", footer_content)
     )
 
     # **Perform the specified string replacements for base path**
-    # This is the simplified and potentially brittle part as per the instructions.
-    # Using an f-string to correctly insert the base_path variable value.
     populated_html = populated_html.replace('href="/', f'href="{basepath}')
     populated_html = populated_html.replace('src="/', f'src="{basepath}')
 
@@ -107,7 +113,7 @@ def generate_page(from_path: str, template_path: str, dest_path: str, basepath, 
         dest_file.write(populated_html)
 
 
-def process_content_directory(content_dir: str, template_path: str, output_dir: str, basepath):
+def process_content_directory(content_dir: str, template_path: str, output_dir: str, basepath, generate_navbar: bool):
     """
     Processes markdown files in a content directory and generates
     corresponding HTML pages in an output directory, mirroring the structure.
@@ -146,7 +152,14 @@ def process_content_directory(content_dir: str, template_path: str, output_dir: 
                 output_file_path = os.path.join(output_dir, output_file_basename)
 
                 try:
-                    generate_page(source_file_path, template_path, output_file_path, basepath, content_directories)
+                    generate_page(
+                        source_file_path,
+                        template_path,
+                        output_file_path,
+                        basepath,
+                        content_directories,
+                        generate_navbar,
+                    )
                 except Exception as e:
                     logger.exception("Error generating page from %s: %s", source_file_path, e)
 
@@ -160,23 +173,39 @@ def main():
     static_base_dir = os.path.normpath(os.path.join(script_dir, "..", "static"))
     public_base_dir = os.path.normpath(os.path.join(script_dir, "..", "docs"))
 
-    basepath = "/"
-    if len(sys.argv) > 1:
-        basepath = sys.argv[1]
-        # Ensure the base path starts and ends with a slash for consistency
-        if not basepath.startswith("/"):
-            basepath = "/" + basepath
-        if not basepath.endswith("/"):
-            basepath += "/"
+    parser = argparse.ArgumentParser(description="Static site generator from markdown content.")
 
-    logger.info(f"Using base path for generation: '{basepath}'")
+    parser.add_argument(
+        "--navbar",
+        action="store_true",
+        help="Incluede a navigation bar in the generated pages.",
+    )
+    parser.add_argument(
+        "--basepath",
+        default="/",
+        help="Base URL path for the site (e.g., '/repository-name/' for Github Pages)",
+    )
+
+    args = parser.parse_args()
+
+    basepath = args.basepath
+    generate_navbar = args.navbar
+
+    if not basepath.endswith("/"):
+        basepath += "/"
+
+    logger.info("Using base path for generation: %s", basepath)
+    if generate_navbar:
+        logger.info("Navbar generation is ENABLED.")
+    else:
+        logger.info("Navbar generation is DISABLED.")
 
     # Clean the public directory before copying
     if os.path.exists(public_base_dir):
         logger.info("Cleaning existing public directory: %s", public_base_dir)
         shutil.rmtree(public_base_dir)
 
-    print(f"Ensuring public base directory exists: {public_base_dir}")
+    logger.info("Ensuring public base directory exists: %s", public_base_dir)
     os.makedirs(public_base_dir)
 
     # Copy static files to the public directory
@@ -191,14 +220,14 @@ def main():
 
     # Call process_content_directory to generate pages in public
     try:
-        process_content_directory(content_base_dir, template_path, public_base_dir, basepath)
+        process_content_directory(content_base_dir, template_path, public_base_dir, basepath, generate_navbar)
         logger.info("Content processing and page generation complete.")
     except FileNotFoundError:
         logger.error("Error: Content directory %s not found. Skipping page generation.", content_base_dir)
     except Exception as e:
         logger.error("An error ocurred during content porcessing: %s", e)
 
-    print("Static site generation complete.")
+    logger.info("Static site generation complete.")
 
 
 if __name__ == "__main__":

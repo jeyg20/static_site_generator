@@ -50,7 +50,7 @@
   --line-height-body: 1.7;
 
   /* -- Spacing & Layout -- */
-  --layout-max-width: 1400px;
+  --layout-max-width: 800px;
   --spacing-base: 1rem;
   --border-radius-base: 5px;
 }

@@ -8,12 +8,6 @@ Here's the deal, **I like Tolkien**.
 >
 > -- J.R.R. Tolkien
 
-## Blog posts
-
-- [Why Glorfindel is More Impressive than Legolas](/blog/glorfindel)
-- [Why Tom Bombadil Was a Mistake](/blog/tom)
-- [The Unparalleled Majesty of "The Lord of the Rings"](/blog/majesty)
-
 ## Reasons I like Tolkien
 
 - You can spend years studying the legendarium and still not understand its depths

@@ -1,0 +1,2 @@
+pytest==8.3.5
+livereload==2.7.1
